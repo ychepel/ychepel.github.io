@@ -20,17 +20,9 @@ function oppositeDirection(direction) {
 }
 
 function Animal() {
-	this.x; 
-	this.y;
-	this.body;
-	this.size;
-	this.color;
 	this.step = 0;
-	this.stepToGrowth;
-	this.sizeToClone;
-	this.maxSize;
 	this.direction = [];
-};
+}
 Animal.prototype.render = function() {
 	context.beginPath();
 	context.arc(this.x, this.y, this.size , 0, 2 * Math.PI);
@@ -42,7 +34,9 @@ Animal.prototype.render = function() {
 	context.fillText(this.body, this.x-this.size/2 , this.y + this.size/2);
 };
 
-function Cat() {Animal.call(this)};
+function Cat() {
+	Animal.call(this);
+}
 Cat.prototype = Object.create(Animal.prototype);
 Cat.prototype.constructor = Cat;
 Cat.prototype.body = 'C';
@@ -51,7 +45,9 @@ Cat.prototype.stepToGrowth = 30;
 Cat.prototype.maxSize = 30;
 Cat.prototype.sizeToClone = 17;
 
-function Dog() {Animal.call(this)};
+function Dog() {
+	Animal.call(this);
+}
 Dog.prototype = Object.create(Animal.prototype);
 Dog.prototype.constructor = Dog;
 Dog.prototype.body = 'D';
@@ -60,7 +56,9 @@ Dog.prototype.stepToGrowth = 20;
 Dog.prototype.maxSize = 50;
 Dog.prototype.sizeToClone = 20;
 
-function Rabbit() {Animal.call(this)};
+function Rabbit() {
+	Animal.call(this);
+}
 Rabbit.prototype = Object.create(Animal.prototype);
 Rabbit.prototype.constructor = Rabbit;
 Rabbit.prototype.body = 'R';
@@ -69,7 +67,9 @@ Rabbit.prototype.stepToGrowth = 25;
 Rabbit.prototype.maxSize = 40;
 Rabbit.prototype.sizeToClone = 18;
 
-function Monster() {Animal.call(this)};
+function Monster() {
+	Animal.call(this);
+}
 Monster.prototype = Object.create(Animal.prototype);
 Monster.prototype.constructor = Monster;
 Monster.prototype.body = 'M';
@@ -101,21 +101,19 @@ function growthAnimal() {
 	}
 }
 
-function draw() {
-	for(var animalNum in population) {
-		var animal = population[animalNum];
-		animal.render();
-	}
+function draw(population) {
+    population.forEach(function(animal) {
+        animal.render();
+    })
 }
 
-function move() {
-	for(var animalNum in population) {
-		var animal = population[animalNum];
+function move(population) {
+	population.forEach(function(animal) {
 		doStep(animal);
 		animal.step++;
 		growthAnimal.call(animal);
 		checkContact(animal);
-	}
+	})
 }
 
 function doStep(animal) {
@@ -190,32 +188,32 @@ function contact(animal1, animal2) {
 
 	if(animal1.constructor.name === 'Monster' && animal2.constructor.name === 'Monster') {
 		if(animal1.size > animal2.size) {
-			removeAnimal.call(animal2);
+			removeAnimal(animal2);
 		}
 		else {
-			removeAnimal.call(animal1);	
+			removeAnimal(animal1);	
 		}
 		return;
 	}
 
 	if(animal1.constructor.name === 'Monster') {
-		removeAnimal.call(animal2);
+		removeAnimal(animal2);
 	}
 	if(animal2.constructor.name === 'Monster') {
-		removeAnimal.call(animal1);
+		removeAnimal(animal1);
 	}
 }
 
-function removeAnimal() {
-	var index = population.indexOf(this);
+function removeAnimal(animal) {
+	var index = population.indexOf(animal);
 	population.splice(index, 1);
 }
 
 function animation() {
 	setInterval(function() {
 		context.clearRect(0, 0, maxX, maxY);
-		draw();
-		move();		
+		draw(population);
+		move(population);		
 	}, 100);
 };
 

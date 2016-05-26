@@ -221,14 +221,28 @@ function removeAnimal(population, animal) {
 
 function animation(population) {
 	setInterval(function() {
+		viewTotal(population);
 		context.clearRect(0, 0, maxX, maxY);
 		draw(population);
 		move(population);		
 	}, 100);
 };
 
+function viewTotal(population) {
+	var animals = ['Cat', 'Dog', 'Rabbit', 'Monster'];
+	animals.forEach(function(animalType) {
+		var count = 0;
+		population.forEach(function(animal) {
+			if(animal.constructor.name === animalType) {
+				count++;
+			}
+		})
+		document.getElementById(animalType + "s").innerHTML = count;
+	})
+}
+
 var population = [];
-init(population, Cat, 3);
+init(population, Cat, 5);
 init(population, Dog, 3);
 init(population, Rabbit, 3);
 animation(population);

@@ -1,4 +1,4 @@
-var population = [];
+(function() {
 var canvas = document.getElementById('animal-world');
 var context = canvas.getContext('2d');
 var fontSuffix = 'px arial';
@@ -75,11 +75,11 @@ Monster.prototype.constructor = Monster;
 Monster.prototype.body = 'M';
 Monster.prototype.color = "red";
 Monster.prototype.stepToGrowth = 30;
-Monster.prototype.maxSize = 50;
+Monster.prototype.maxSize = 55;
 Monster.prototype.sizeToClone = 51;
 
 
-function init(animal, count, posX, posY) {
+function init(population, animal, count, posX, posY) {
 	for (var i = 0; i < count; i++) {
 		var currentAnimal = new animal();
 		currentAnimal.size = 15;
@@ -91,13 +91,13 @@ function init(animal, count, posX, posY) {
 	}
 }
 
-function growthAnimal() {
-	if(this.step >= this.stepToGrowth) {
-		this.step = 0;
-		this.size++;
+function growthAnimal(animal) {
+	if(animal.step >= animal.stepToGrowth) {
+		animal.step = 0;
+		animal.size++;
 	}
-	if(this.size > this.maxSize) {
-		this.size = this.maxSize;
+	if(animal.size > animal.maxSize) {
+		animal.size = animal.maxSize;
 	}
 }
 
@@ -111,8 +111,8 @@ function move(population) {
 	population.forEach(function(animal) {
 		doStep(animal);
 		animal.step++;
-		growthAnimal.call(animal);
-		checkContact(animal);
+		growthAnimal(animal);
+		checkContact(population, animal);
 	})
 }
 
@@ -147,69 +147,79 @@ function doStep(animal) {
 	}
 }
 
-function checkContact(currentAnimal) {
-	for(var animalNum in population) {
-		var animal = population[animalNum];
+function checkContact(population, currentAnimal) {
+	population.forEach(function(animal) {
 		if(animal != currentAnimal) {
 			if(animal.x - animal.size <= currentAnimal.x 
 				&& animal.x + animal.size >= currentAnimal.x) {
 					if(animal.y - animal.size <= currentAnimal.y 
 						&& animal.y + animal.size >= currentAnimal.y) {
-							contact(currentAnimal, animal);
+							contact(population, currentAnimal, animal);
 					}
 			}
 		}
+	})
+}
+
+function reproduction(population, animal1, animal2) {
+	if(animal1.constructor.name === 'Monster') {
+		return;
+	}
+	if(animal2.constructor.name === 'Monster') {
+		return;
+	}
+	init(population, animal1.constructor, 1, animal1.x + 20, animal1.y + 20);
+	selection(population, animal1);
+	selection(population, animal2);
+}
+
+function selection(population, animal) {
+	if(animal.direction[0] === '' && animal.direction[1] === '') {
+		removeAnimal(population, animal);
 	}
 }
 
-function contact(animal1, animal2) {
+function rabbitReproduction(population, animal1, animal2) {
+	if(animal1.constructor.name === 'Rabbit' 
+		&& animal2.constructor.name != 'Rabbit'
+		&& animal2.constructor.name != 'Monster') {
+		init(population, Monster, 1, animal2.x + 20, animal2.y + 20);
+	}
+}
+
+function monsterContact(population, animal1, animal2) {
+	if(animal1.size > animal2.size && animal1.constructor.name === 'Monster') {
+		removeAnimal(population, animal2);
+		return;
+	}
+	if(animal2.size > animal1.size && animal2.constructor.name === 'Monster') {
+		removeAnimal(population, animal1);	
+	}
+}
+
+function contact(population, animal1, animal2) {
 	if(animal1.constructor.name === animal2.constructor.name) {
 		if(animal1.size >= animal1.sizeToClone) {
 			if(animal2.size >= animal2.sizeToClone) {
-				init(animal1.constructor, 1, animal1.x + 20, animal1.y + 20);
-				if(animal1.direction[0] === '' && animal1.direction[1] === '') {
-					removeAnimal(animal1);
-				}
-				if(animal2.direction[0] === '' && animal2.direction[1] === '') {
-					removeAnimal(animal2);
-				}
+				reproduction(population, animal1, animal2);
 				return;
 			}
 		}
 	}
 
-	if(animal1.constructor.name === 'Rabbit' && animal2.constructor.name != 'Rabbit') {
-		init(Monster, 1, animal2.x + 20, animal2.y + 20);
-	}
-	if(animal1.constructor.name != 'Rabbit' && animal2.constructor.name === 'Rabbit') {
-		init(Monster, 1, animal1.x + 20, animal1.y + 20);
-	}
+	rabbitReproduction(population, animal1, animal2);
+	rabbitReproduction(population, animal2, animal1);
 
 
-	if(animal1.constructor.name === 'Monster' && animal2.constructor.name === 'Monster') {
-		if(animal1.size > animal2.size) {
-			removeAnimal(animal2);
-		}
-		else {
-			removeAnimal(animal1);	
-		}
-		return;
-	}
-
-	if(animal1.constructor.name === 'Monster') {
-		removeAnimal(animal2);
-	}
-	if(animal2.constructor.name === 'Monster') {
-		removeAnimal(animal1);
-	}
+	monsterContact(population, animal1, animal2);
 }
 
-function removeAnimal(animal) {
+function removeAnimal(population, animal) {
 	var index = population.indexOf(animal);
 	population.splice(index, 1);
 }
 
-function animation() {
+function animation(population) {
 	setInterval(function() {
 		context.clearRect(0, 0, maxX, maxY);
 		draw(population);
@@ -217,7 +227,9 @@ function animation() {
 	}, 100);
 };
 
-init(Cat, 5);
-init(Dog, 5);
-init(Rabbit, 5);
-animation();
+var population = [];
+init(population, Cat, 3);
+init(population, Dog, 3);
+init(population, Rabbit, 3);
+animation(population);
+}) ();
